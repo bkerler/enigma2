@@ -4,7 +4,8 @@ SUBDIRS = PositionerSetup Satfinder SoftwareManager \
 	VideoTune Hotplug CableScan \
 	DefaultServicesScanner CommonInterfaceAssignment \
 	VideoEnhancement WirelessLan NetworkWizard VideoClippingSetup \
-	SatelliteEquipmentControl DiseqcTester HdmiCEC FastScan LCNScanner
+	SatelliteEquipmentControl DiseqcTester HdmiCEC FastScan LCNScanner \
+	FastChannelChange
 
 if HAVE_LIBVUGLES2
 SUBDIRS += AnimationSetup

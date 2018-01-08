@@ -9,6 +9,7 @@
 #include <lib/dvb/dvb.h>
 #include <lib/dvb/db.h>
 #include <lib/dvb/decoder.h>
+#include <lib/service/servicedvbfcc.h>
 
 #include <lib/components/file_eraser.h>
 #include <lib/service/servicedvbrecord.h>
@@ -33,6 +34,8 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+
+#include <lib/dvb/fcc.h>
 
 #ifndef BYTE_ORDER
 #error no byte order defined!
@@ -924,7 +927,10 @@ RESULT eServiceFactoryDVB::play(const eServiceReference &ref, ePtr<iPlayableServ
 	if (r)
 		service = 0;
 		// check resources...
-	ptr = new eDVBServicePlay(ref, service);
+	if(eFCCServiceManager::checkAvailable(ref))
+		ptr = new eDVBServiceFCCPlay(ref, service);
+	else
+		ptr = new eDVBServicePlay(ref, service);
 	return 0;
 }
 
@@ -1014,10 +1020,11 @@ RESULT eServiceFactoryDVB::lookupService(ePtr<eDVBService> &service, const eServ
 	return 0;
 }
 
-eDVBServicePlay::eDVBServicePlay(const eServiceReference &ref, eDVBService *service):
+eDVBServicePlay::eDVBServicePlay(const eServiceReference &ref, eDVBService *service, bool connect_event):
 	m_reference(ref),
 	m_dvb_service(service),
 	m_decoder_index(0),
+	m_is_primary(1),
 	m_have_video_pid(0),
 	m_tune_state(-1),
 	m_noaudio(false),
@@ -1438,6 +1445,7 @@ RESULT eDVBServicePlay::stop()
 
 RESULT eDVBServicePlay::setTarget(int target, bool noaudio = false)
 {
+	m_is_primary = !target;
 	m_decoder_index = target;
 	m_noaudio = noaudio;
 	return 0;
@@ -2209,7 +2217,7 @@ int eDVBServicePlay::selectAudioStream(int i)
 	int rdsPid = apid;
 
 		/* if we are not in PVR mode, timeshift is not active and we are not in pip mode, check if we need to enable the rds reader */
-	if (!(m_is_pvr || m_timeshift_active || m_decoder_index || m_have_video_pid))
+	if (!(m_is_pvr || m_timeshift_active || m_decoder_index || m_have_video_pid || !m_is_primary))
 	{
 		int different_pid = program.videoStreams.empty() && program.audioStreams.size() == 1 && program.audioStreams[stream].rdsPid != -1;
 		if (different_pid)
@@ -2910,6 +2918,8 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 
 	m_have_video_pid = 0;
 
+	eDebug("[adenin] 1");
+
 	if (!m_decoder)
 	{
 		h.getDecodeDemux(m_decode_demux);
@@ -2923,12 +2933,14 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 			m_cue->setDecodingDemux(m_decode_demux, m_decoder);
 		mustPlay = true;
 	}
+	eDebug("[adenin] 2");
 
 	m_timeshift_changed = 0;
 
 	if (m_decoder)
 	{
 		bool wasSeekable = m_decoder->getVideoProgressive() != -1;
+		eDebug("[adenin] 2a");
 		if (!m_noaudio)
 		{
 			if (m_dvb_service)
@@ -2957,10 +2969,12 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 			setAC3Delay(ac3_delay == -1 ? 0 : ac3_delay);
 			setPCMDelay(pcm_delay == -1 ? 0 : pcm_delay);
 		}
+		eDebug("[adenin] 2b");
 
 		m_decoder->setVideoPID(vpid, vpidtype);
 		m_current_video_pid_type = vpidtype;
 		m_have_video_pid = (vpid > 0 && vpid < 0x2000);
+		eDebug("[adenin] 2c");
 
 		if (!m_noaudio)
 		{
@@ -2974,15 +2988,22 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 				m_decoder->setSyncPCR(-1);
 #endif
 		}
+		eDebug("[adenin] 2d");
 
 		if (m_decoder_index == 0)
 		{
 			m_decoder->setTextPID(tpid);
 		}
+		eDebug("[adenin] 2e");
 
-		if (vpid > 0 && vpid < 0x2000)
-			;
-		else
+//		if (m_is_primary)
+//		{
+//			m_decoder->setTextPID(tpid);
+//			m_teletext_parser->start(program.textPid);
+//		}
+		eDebug("[adenin] 2f");
+
+		if (!(vpid > 0 && vpid < 0x2000))
 		{
 			std::string value;
 			bool showRadioBackground = eConfigManager::getConfigBoolValue("config.misc.showradiopic", true);
@@ -2993,6 +3014,7 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 				radio_pic = eConfigManager::getConfigValue("config.misc.blackradiopic");
 			m_decoder->setRadioPic(radio_pic);
 		}
+	eDebug("[adenin] 3");
 
 		if (mustPlay)
 			m_decoder->play();
@@ -3002,7 +3024,8 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 		if (!m_noaudio)
 			m_decoder->setAudioChannel(achannel);
 
-		if (mustPlay && m_decode_demux && m_decoder_index == 0)
+	eDebug("[adenin] 4");
+		if (mustPlay && m_decode_demux && m_decoder_index == 0 && m_is_primary)
 		{
 			m_teletext_parser = new eDVBTeletextParser(m_decode_demux);
 			m_teletext_parser->connectNewStream(sigc::mem_fun(*this, &eDVBServicePlay::newSubtitleStream), m_new_subtitle_stream_connection);
@@ -3022,6 +3045,7 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 			}
 			m_teletext_parser->start(program.textPid);
 		}
+	eDebug("[adenin] 5");
 
 		/* don't worry about non-existing services, nor pvr services */
 		if (m_dvb_service)
@@ -3037,6 +3061,7 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 		}
 		if (!sendSeekableStateChanged && (m_decoder->getVideoProgressive() != -1) != wasSeekable)
 			sendSeekableStateChanged = true;
+	eDebug("[adenin] 6");
 	}
 
 	if (sendSeekableStateChanged)

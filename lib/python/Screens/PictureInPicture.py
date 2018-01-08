@@ -13,6 +13,7 @@ MAX_Y = 576
 pip_config_initialized = False
 PipPigModeEnabled = False
 PipPigModeTimer = eTimer()
+on_pip_start_stop = []
 
 def timedStopPipPigMode():
 	from Screens.InfoBar import InfoBar
@@ -71,8 +72,11 @@ class PictureInPicture(Screen):
 			pip_config_initialized = True
 
 		self.onLayoutFinish.append(self.LayoutFinished)
+		self.dvbPipStarted = False
 
 	def __del__(self):
+		if self.dvbPipStarted:
+			self.onPipStartAndStop()
 		del self.pipservice
 		self.setExternalPiP(False)
 		self.setSizePosMainWindow()
@@ -187,6 +191,9 @@ class PictureInPicture(Screen):
 			if self.pipservice and not self.pipservice.setTarget(1, True):
 				if hasattr(self, "dishpipActive") and self.dishpipActive is not None:
 					self.dishpipActive.startPiPService(ref)
+				if ref.type == 1: # dvb service
+					self.dvbPipStarted = True
+					self.onPipStartAndStop()
 				self.pipservice.start()
 				self.currentService = service
 				self.currentServiceReference = ref
@@ -201,6 +208,11 @@ class PictureInPicture(Screen):
 
 	def getCurrentService(self):
 		return self.currentService
+
+	def onPipStartAndStop(self):
+		global on_pip_start_stop
+		for x in on_pip_start_stop:
+			x()
 
 	def getCurrentServiceReference(self):
 		return self.currentServiceReference

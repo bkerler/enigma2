@@ -66,6 +66,7 @@ int eDVBPMTParser::getProgramInfo(program &program)
 		eDVBTableSpec table_spec;
 		ptr->getSpec(table_spec);
 		program.pmtPid = table_spec.pid < 0x1fff ? table_spec.pid : -1;
+		program.pmtVersion = table_spec.version;
 		std::vector<ProgramMapSection*>::const_iterator i;
 		for (i = ptr->getSections().begin(); i != ptr->getSections().end(); ++i)
 		{

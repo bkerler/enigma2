@@ -702,6 +702,7 @@ public:
 	virtual RESULT getCAAdapterID(uint8_t &id)=0;
 	virtual RESULT flush()=0;
 	virtual int openDVR(int flags)=0;
+	virtual int getSource()=0;
 };
 
 class iTSMPEGDecoder: public iObject
@@ -779,6 +780,17 @@ public:
 	virtual int getVideoProgressive() = 0;
 	virtual int getVideoFrameRate() = 0;
 	virtual int getVideoAspect() = 0;
+
+	virtual RESULT prepareFCC(int fe_id, int vpid, int vtype, int pcrpid) = 0;
+	virtual RESULT fccStart() = 0;
+	virtual RESULT fccStop() = 0;
+	virtual RESULT fccDecoderStart() = 0;
+	virtual RESULT fccDecoderStop() = 0;
+	virtual RESULT fccUpdatePids(int fe_id, int vpid, int vtype, int pcrpid) = 0;
+	virtual RESULT fccSetPids(int fe_id, int vpid, int vtype, int pcrpid) = 0;
+	virtual RESULT fccGetFD() = 0;
+	virtual RESULT fccFreeFD() = 0;
+
 };
 
 #endif //SWIG

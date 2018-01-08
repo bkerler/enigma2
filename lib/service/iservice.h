@@ -454,6 +454,7 @@ public:
 		frontendStatus,
 		snrValue,
 		frequency,
+		isUsbTuner,
 	};
 };
 
@@ -930,6 +931,8 @@ public:
 		evStopped,
 
 		evHBBTVInfo,
+
+		evFccFailed,
 
 		evUser = 0x100
 	};

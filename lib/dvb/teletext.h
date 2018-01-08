@@ -42,7 +42,7 @@ public:
 	static const int max_id = 26;
 	static const char * const my_country_codes[];
 	int start(int pid);
-	void setPageAndMagazine(int page, int magazine, const char * lang);
+	void setPageAndMagazine(int page, int magazine, const char * lang = "und");
 	void setMagazine(int magazine);
 	void connectNewStream(const sigc::slot0<void> &slot, ePtr<eConnection> &connection);
 	void connectNewPage(const sigc::slot1<void,const eDVBTeletextSubtitlePage &> &slot, ePtr<eConnection> &connection);

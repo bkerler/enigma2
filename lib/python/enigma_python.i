@@ -114,6 +114,7 @@ is usually caused by not marking PSignals as immutable.
 #include <lib/python/python.h>
 #include <lib/python/python_helpers.h>
 #include <lib/gdi/picload.h>
+#include <lib/dvb/fcc.h>
 %}
 
 %feature("ref")   iObject "$this->AddRef(); /* eDebug(\"AddRef (%s:%d)!\", __FILE__, __LINE__); */ "
@@ -196,6 +197,7 @@ typedef long time_t;
 %immutable iCryptoInfo::usedcardid;
 %immutable eTuxtxtApp::appClosed;
 %immutable iDVBChannel::receivedTsidOnid;
+%immutable eFCCServiceManager::m_fcc_event;
 %include <lib/base/message.h>
 %include <lib/base/etpm.h>
 %include <lib/driver/rc.h>
@@ -262,6 +264,7 @@ typedef long time_t;
 %include <lib/python/pythonconfig.h>
 %include <lib/gdi/picload.h>
 %include <lib/dvb/streamserver.h>
+%include <lib/dvb/fcc.h>
 /**************  eptr  **************/
 
 /**************  signals  **************/
@@ -424,6 +427,15 @@ int getLinkedSlotID(int fe)
         eFBCTunerManager *mgr = eFBCTunerManager::getInstance();
         if (mgr) return mgr->getLinkedSlotID(fe);
         return -1;
+}
+%}
+
+void setFCCEnable(int);
+%{
+void setFCCEnable(int enable)
+{
+        eFCCServiceManager *fcc_mng = eFCCServiceManager::getInstance();
+        if (fcc_mng) setFCCEnable(enable);
 }
 %}
 
