@@ -1815,7 +1815,8 @@ int eDVBResourceManager::canAllocateChannel(const eDVBChannelID &channelid, cons
 			// or 2 when the cached channel is not equal to the compared channel
 			int check_usecount = channel == &(*m_cached_channel) ? 1 : 0;
 			check_usecount += (apply_to_ignore+1) * 2; // one is used in eDVBServicePMTHandler and another is used in eDVBScan.
-//			if (channel == &(*m_cached_channel) ? channel->getUseCount() == 3 : channel->getUseCount() == 2)  // channel only used once..
+			//eDebug("[eDVBResourceManager::canAllocateChannel] channel->getUseCount() : %d , check_usecount : %d (cached : %d)", channel->getUseCount(), check_usecount, channel == &(*m_cached_channel));
+			//if (channel == &(*m_cached_channel) ? channel->getUseCount() == 3 : channel->getUseCount() == 2)  // channel only used once..
 			if (channel->getUseCount() == check_usecount)  // channel only used once..(except fcc)
 			{
 				ePtr<iDVBFrontend> fe;
@@ -1825,6 +1826,7 @@ int eDVBResourceManager::canAllocateChannel(const eDVBChannelID &channelid, cons
 					{
 						if ( &(*fe) == &(*ii->m_frontend) )
 						{
+							//eDebug("[eDVBResourceManager::canAllocateChannel] ignore : decrease fcc fe use_count! feid : %d (%d -> %d)", ii->m_frontend->getSlotID(), ii->m_inuse, ii->m_inuse-1);
 							--ii->m_inuse;
 							decremented_fe_usecount = &ii->m_inuse;
 							if (channel == &(*m_cached_channel))

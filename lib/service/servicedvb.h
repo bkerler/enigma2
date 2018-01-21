@@ -174,7 +174,7 @@ public:
 	RESULT setNextPlaybackFile(const char *fn);
 	RESULT saveTimeshiftFile();
 	std::string getTimeshiftFilename();
-	void switchToLive();
+	virtual void switchToLive();
 
 		// iCueSheet
 	PyObject *getCutList();

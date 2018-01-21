@@ -991,6 +991,7 @@ public:
 		evRecordFailed,
 		evRecordWriteError,
 		evNewEventInfo,
+		evTuneStart,
 		evRecordAborted,
 		evGstRecordEnded,
 	};

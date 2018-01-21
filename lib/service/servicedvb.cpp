@@ -1045,7 +1045,10 @@ eDVBServicePlay::eDVBServicePlay(const eServiceReference &ref, eDVBService *serv
 	m_subtitle_sync_timer(eTimer::create(eApp)),
 	m_nownext_timer(eTimer::create(eApp))
 {
-	CONNECT(m_service_handler.serviceEvent, eDVBServicePlay::serviceEvent);
+	if (connect_event)
+	{
+		CONNECT(m_service_handler.serviceEvent, eDVBServicePlay::serviceEvent);
+	}
 	CONNECT(m_service_handler_timeshift.serviceEvent, eDVBServicePlay::serviceEventTimeshift);
 	CONNECT(m_event_handler.m_eit_changed, eDVBServicePlay::gotNewEvent);
 	CONNECT(m_subtitle_sync_timer->timeout, eDVBServicePlay::checkSubtitleTiming);

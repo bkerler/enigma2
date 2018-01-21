@@ -190,8 +190,11 @@ void eDVBServicePMTHandler::PMTready(int error)
 			{
 				registerCAService();
 			}
-			eDVBCIInterfaces::getInstance()->recheckPMTHandlers();
-			eDVBCIInterfaces::getInstance()->gotPMT(this);
+			if (!m_ca_disabled)
+			{
+				eDVBCIInterfaces::getInstance()->recheckPMTHandlers();
+				eDVBCIInterfaces::getInstance()->gotPMT(this);
+			}
 		}
 		if (m_ca_servicePtr)
 		{
@@ -1025,7 +1028,7 @@ int eDVBServicePMTHandler::tuneExt(eServiceReferenceDVB &ref, ePtr<iTsSource> &s
 		if (!m_resourceManager->getChannelList(db))
 			db->getService((eServiceReferenceDVB&)m_reference, m_service);
 
-		if (!res && !simulate)
+		if (!res && !simulate && !m_ca_disabled)
 			eDVBCIInterfaces::getInstance()->addPMTHandler(this);
 	} else if (!simulate) // no simulation of playback services
 	{
