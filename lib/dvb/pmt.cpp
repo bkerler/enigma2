@@ -323,8 +323,8 @@ void eDVBServicePMTHandler::AITready(int error)
 			for (; i != (*it)->getApplicationInformation()->end(); ++i)
 			{
 				std::string hbbtvUrl = "", applicaionName = "";
-                                std::string boundaryExtension = "";
-
+				std::string boundaryExtension = "";
+				std::string TPDescPath = "", SALDescPath = "";
 				int controlCode = (*i)->getApplicationControlCode();
 				ApplicationIdentifier * applicationIdentifier = (ApplicationIdentifier *)(*i)->getApplicationIdentifier();
                                 profilecode = 0;
@@ -388,7 +388,7 @@ void eDVBServicePMTHandler::AITready(int error)
 									InterActionTransportConstIterator interactionit = transport->getInteractionTransports()->begin();
 									for(; interactionit != transport->getInteractionTransports()->end(); ++interactionit)
 									{
-										hbbtvUrl = (*interactionit)->getUrlBase()->getUrl();
+										TPDescPath = (*interactionit)->getUrlBase()->getUrl();
 										break;
 									}
 									break;
@@ -401,7 +401,7 @@ void eDVBServicePMTHandler::AITready(int error)
 						case SIMPLE_APPLICATION_LOCATION_DESCRIPTOR:
 						{
 							SimpleApplicationLocationDescriptor *applicationlocation = (SimpleApplicationLocationDescriptor*)(*desc);
-							hbbtvUrl += applicationlocation->getInitialPath();
+							SALDescPath = applicationlocation->getInitialPath();
 							break;
 						}
 						case APPLICATION_USAGE_DESCRIPTOR:
@@ -410,6 +410,7 @@ void eDVBServicePMTHandler::AITready(int error)
 							break;
 						}
 					}
+					hbbtvUrl = TPDescPath + SALDescPath;
 				}
 				if(!hbbtvUrl.empty())
 				{
